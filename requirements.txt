@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-python-chess
-jinja2
-websockets
-google-generativeai
-python-dotenv
