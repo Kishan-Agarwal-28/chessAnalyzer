@@ -31,12 +31,12 @@ A real-time chess analysis tool that combines Stockfish engine evaluation with v
 https://github.com/Kishan-Agarwal-28/chessAnalyzer.git
 cd chessAnalyzer
 ```
-3. Install dependencies:
+2. Install dependencies:
  
   `Please install stockfish for your system from their website in the engines/stockfish folder to run this project.`
 
 
-4. Set up environment variables:
+3. Set up environment variables:
 Create a `.env` file in the project root with:
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
