@@ -280,17 +280,24 @@ function loadPGN(pgn) {
 function goToMove(index) {
     if (index < -1 || index >= moves.length) return;
     
-    // Reset position and play moves up to the selected index
-    game.reset();
-    board.position(game.fen());
-    clearHighlights();
+    let targetFen;
     
+    // Store current position
+    const currentPosition = game.fen();
+    
+    // Calculate target position
+    const tempGame = new Chess();
     for (let i = 0; i <= index; i++) {
-        game.move(moves[i]);
+        tempGame.move(moves[i]);
     }
+    targetFen = tempGame.fen();
     
+    // Update the actual game state
+    game.load(targetFen);
     currentMoveIndex = index;
-    board.position(game.fen());
+    
+    // Animate to the new position
+    board.position(targetFen, true); // true enables animation
     
     // Update active move in the moves list
     document.querySelectorAll('.move-row').forEach(row => {
@@ -301,7 +308,8 @@ function goToMove(index) {
         }
     });
     
-    // Request analysis for current position
+    // Clear existing highlights and request analysis
+    clearHighlights();
     requestAnalysis(index >= 0 ? moves[index].san : null);
 }
 
