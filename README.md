@@ -28,7 +28,7 @@ A real-time chess analysis tool that combines Stockfish engine evaluation with v
 ## Installation
 1. Clone the repository :
 ```bash
-git clone https://github.com/yourusername/chessAnalyzer.git
+https://github.com/Kishan-Agarwal-28/chessAnalyzer.git
 cd chessAnalyzer
 ```
 3. Install dependencies:
