@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException,Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -10,6 +10,7 @@ import os
 from main import analyze_position, get_human_readable_analysis, setup_gemini
 import json
 from dotenv import load_dotenv
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Initialize Stockfish and Gemini
-STOCKFISH_PATH = os.path.join(os.path.dirname(__file__), 'engines', 'stockfish', 'stockfish-windows-x86-64-avx2.exe')
+STOCKFISH_PATH = os.path.join(os.path.dirname(__file__), 'engines', 'stockfish' ,'stockfish-ubuntu-x86-64-avx2')
 try:
     engine = chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH)
 except Exception as e:
@@ -42,12 +43,31 @@ except Exception as e:
 @app.get("/", response_class=HTMLResponse)
 async def get_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
+@app.post("/validate-api-key")
+async def validate_api_key(request: dict):
+    api_key = request.get("apiKey")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="API key required")
+    
+    try:
+        # Test the API key with Gemini
+        model = setup_gemini(api_key)
+        # Make a simple test request
+        response = model.generate_content("Test")
+        return {"valid": True}
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid API key")
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, api_key: Optional[str] = Query(None)):
     await websocket.accept()
     board = chess.Board()
-    
+    if not api_key:
+        await websocket.send_json({
+            "type": "error", 
+            "message": "API key is required. Please provide it as a query parameter."
+        })
+        await websocket.close(code=4001, reason="API key required")
+        return
     try:
         while True:
             data = await websocket.receive_json()
@@ -109,4 +129,4 @@ def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

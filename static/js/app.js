@@ -7,7 +7,7 @@ let arrows = null;
 
 // Initialize WebSocket connection
 function initWebSocket() {
-    ws = new WebSocket('ws://localhost:8000/ws');
+    ws = createAuthenticatedWebSocket("ws://localhost:8000/ws")
     
     ws.onmessage = function(event) {
         const data = JSON.parse(event.data);

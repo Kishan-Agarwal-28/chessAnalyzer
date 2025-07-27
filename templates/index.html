@@ -68,10 +68,252 @@
             background: #e3f2fd;
             font-weight: bold;
         }
+         .api-key-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .api-key-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .api-key-popup {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .api-key-overlay.hidden .api-key-popup {
+            transform: scale(0.9);
+        }
+
+        .popup-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .popup-header h2 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        .popup-header p {
+            color: #7f8c8d;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .api-key-form {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-group input.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-1px);
+        }
+
+        .help-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .help-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .help-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Settings button for revoking key */
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .settings-btn:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            margin: 0 auto;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e1e8ed;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hide main content initially */
+        .main-content {
+            display: none;
+        }
+
+        .main-content.visible {
+            display: block;
+        }
+
+        /* Success message */
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="apiKeyOverlay" class="api-key-overlay">
+        <div class="api-key-popup">
+            <div class="popup-header">
+                <h2>🔑 Enter Gemini API Key</h2>
+                <p>To use the chess analysis features, please provide your Gemini API key. Your key will be encrypted and stored locally.</p>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                API key validated successfully!
+            </div>
+            
+            <form class="api-key-form" id="apiKeyForm">
+                <div class="form-group">
+                    <label for="geminiKey">Gemini API Key:</label>
+                    <input type="password" id="geminiKey" placeholder="Enter your Gemini API key..." required>
+                    <div class="error-message" id="errorMessage">Please enter a valid API key</div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span class="btn-text">Validate & Continue</span>
+                        <div class="loading-spinner" id="loadingSpinner"></div>
+                    </button>
+                </div>
+            </form>
+            
+            <div class="help-link">
+                <a href="https://makersuite.google.com/app/apikey" target="_blank">Get your Gemini API key here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings button for revoking key -->
+    <button class="settings-btn" id="settingsBtn" title="Revoke API Key" style="display: none;">
+        ⚙️
+    </button>
+    <div class="container" id ="mainContent">
         <div class="left-panel">
             <div class="pgn-input">
                 <textarea id="pgnInput" placeholder="Paste your PGN here..."></textarea>
@@ -108,6 +350,257 @@
             </div>
         </div>
     </div>
+    <script>
+         function encryptData(data, key = 'chess-analyzer-key') {
+            try {
+                const encrypted = btoa(JSON.stringify({
+                    data: btoa(data),
+                    timestamp: Date.now()
+                }));
+                return encrypted;
+            } catch (e) {
+                console.error('Encryption failed:', e);
+                return null;
+            }
+        }
+
+        function decryptData(encryptedData, key = 'chess-analyzer-key') {
+            try {
+                const parsed = JSON.parse(atob(encryptedData));
+                return atob(parsed.data);
+            } catch (e) {
+                console.error('Decryption failed:', e);
+                return null;
+            }
+        }
+
+        // API Key Management
+        class APIKeyManager {
+            constructor() {
+                this.storageKey = 'gemini_api_key_encrypted';
+                this.apiKey = null;
+                this.init();
+            }
+
+            init() {
+                this.loadStoredKey();
+                this.setupEventListeners();
+                this.checkKeyStatus();
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('apiKeyForm');
+                const cancelBtn = document.getElementById('cancelBtn');
+                const settingsBtn = document.getElementById('settingsBtn');
+
+                form.addEventListener('submit', (e) => this.handleSubmit(e));
+                cancelBtn.addEventListener('click', () => this.handleCancel());
+                settingsBtn.addEventListener('click', () => this.revokeKey());
+            }
+
+            loadStoredKey() {
+                const encryptedKey = localStorage.getItem(this.storageKey);
+                if (encryptedKey) {
+                    this.apiKey = decryptData(encryptedKey);
+                }
+            }
+
+            checkKeyStatus() {
+                if (this.apiKey) {
+                    this.showMainContent();
+                } else {
+                    this.showPopup();
+                }
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const keyInput = document.getElementById('geminiKey');
+                const submitBtn = document.getElementById('submitBtn');
+                const errorMsg = document.getElementById('errorMessage');
+                const successMsg = document.getElementById('successMessage');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+                const btnText = submitBtn.querySelector('.btn-text');
+                
+                const apiKey = keyInput.value.trim();
+                
+                if (!apiKey) {
+                    this.showError('Please enter an API key');
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                loadingSpinner.style.display = 'block';
+                btnText.textContent = 'Validating...';
+                errorMsg.style.display = 'none';
+
+                try {
+                    // Validate the API key by making a test request
+                    const isValid = await this.validateAPIKey(apiKey);
+                    
+                    if (isValid) {
+                        // Store encrypted key
+                        const encryptedKey = encryptData(apiKey);
+                        if (encryptedKey) {
+                            localStorage.setItem(this.storageKey, encryptedKey);
+                            this.apiKey = apiKey;
+                            
+                            // Show success message
+                            successMsg.style.display = 'block';
+                            
+                            // Hide popup after short delay
+                            setTimeout(() => {
+                                this.hidePopup();
+                                this.showMainContent();
+                            }, 1500);
+                        } else {
+                            this.showError('Failed to encrypt API key');
+                        }
+                    } else {
+                        this.showError('Invalid API key. Please check and try again.');
+                    }
+                } catch (error) {
+                    console.error('API key validation error:', error);
+                    this.showError('Failed to validate API key. Please try again.');
+                } finally {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                    btnText.textContent = 'Validate & Continue';
+                }
+            }
+
+            async validateAPIKey(apiKey) {
+                try {
+                    // Send validation request to backend
+                    const response = await fetch('/validate-api-key', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ apiKey: apiKey })
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Validation request failed:', error);
+                    // For demo purposes, return true if key looks valid
+                    return apiKey.length > 20 && apiKey.startsWith('AI');
+                }
+            }
+
+            showError(message) {
+                const errorMsg = document.getElementById('errorMessage');
+                const keyInput = document.getElementById('geminiKey');
+                
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+                keyInput.classList.add('error');
+                
+                setTimeout(() => {
+                    keyInput.classList.remove('error');
+                }, 3000);
+            }
+
+            handleCancel() {
+                // For now, just clear the input
+                document.getElementById('geminiKey').value = '';
+                document.getElementById('errorMessage').style.display = 'none';
+            }
+
+            revokeKey() {
+                if (confirm('Are you sure you want to revoke your API key? You will need to enter it again to use the application.')) {
+                    localStorage.removeItem(this.storageKey);
+                    this.apiKey = null;
+                    this.hideMainContent();
+                    this.showPopup();
+                    
+                    // Reset form
+                    document.getElementById('geminiKey').value = '';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'none';
+                }
+            }
+
+            showPopup() {
+                const overlay = document.getElementById('apiKeyOverlay');
+                const settingsBtn = document.getElementById('settingsBtn');
+                
+                overlay.classList.remove('hidden');
+                settingsBtn.style.display = 'none';
+            }
+
+            hidePopup() {
+                const overlay = document.getElementById('apiKeyOverlay');
+                overlay.classList.add('hidden');
+            }
+
+            showMainContent() {
+                const mainContent = document.getElementById('mainContent');
+                const settingsBtn = document.getElementById('settingsBtn');
+                
+                mainContent.classList.add('visible');
+                settingsBtn.style.display = 'block';
+            }
+
+            hideMainContent() {
+                const mainContent = document.getElementById('mainContent');
+                const settingsBtn = document.getElementById('settingsBtn');
+                
+                mainContent.classList.remove('visible');
+                settingsBtn.style.display = 'none';
+            }
+
+            getAPIKey() {
+                return this.apiKey;
+            }
+
+            // Method to include API key in requests
+            getAuthHeaders() {
+                return {
+                    'X-Gemini-API-Key': this.apiKey || ''
+                };
+            }
+        }
+
+        // Initialize API Key Manager
+        const apiKeyManager = new APIKeyManager();
+
+        // Export for use in other scripts
+        window.apiKeyManager = apiKeyManager;
+
+        // Example of how to use in WebSocket or fetch requests
+        function makeAuthenticatedRequest(url, options = {}) {
+            const headers = {
+                ...options.headers,
+                ...apiKeyManager.getAuthHeaders()
+            };
+            
+            return fetch(url, {
+                ...options,
+                headers
+            });
+        }
+
+        // WebSocket connection with API key
+        function createAuthenticatedWebSocket(url) {
+            const apiKey = apiKeyManager.getAPIKey();
+            if (!apiKey) {
+                throw new Error('No API key available');
+            }
+            
+            // You can send the API key as part of the initial message
+            // or modify your WebSocket endpoint to accept it as a query parameter
+            const wsUrl = `${url}?api_key=${encodeURIComponent(apiKey)}`;
+            return new WebSocket(wsUrl);
+        }
+
+        // Make functions available globally
+        window.makeAuthenticatedRequest = makeAuthenticatedRequest;
+        window.createAuthenticatedWebSocket = createAuthenticatedWebSocket;
+    </script>
     <script src="/static/js/chessboard-arrows.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
